@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <style>
+        /* You should not be here - itsmike613 2026 */
+
+        :root {
+            --bg: #ffffff;
+            --text: #1a1a1a;
+            --border: #1a1a1a;
+            --hour-hand: #1a1a1a;
+            --min-hand: #0066ff;
+            --sec-hand: #ff4d4d;
+            --ui-gray: #f4f4f4;
+            --correct: #27ae60;
+            --panel-w: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Inter", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header {
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+        }
+
+        header p {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            opacity: 0.7;
+        }
+
+        .clock {
+            position: relative;
+            width: var(--panel-w);
+            height: var(--panel-w);
+            border: 4px solid var(--border);
+            border-radius: 50%;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .tick {
+            position: absolute;
+            left: 50%;
+            width: 2px;
+            height: 8px;
+            background: #d0d0d0;
+            transform-origin: 0 138px;
+        }
+
+        .tick.hour-tick {
+            width: 3px;
+            height: 14px;
+            background: var(--text);
+        }
+
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 18px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+            transform: rotate(var(--r));
+            transition: opacity 0.2s;
+        }
+
+        .number span {
+            display: inline-block;
+            transform: rotate(calc(var(--r) * -1));
+        }
+
+        .blind-active .number {
+            opacity: 0;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            display: none;
+            border-radius: 10px;
+            transform: translateX(-50%) rotate(0deg);
+            transform-origin: bottom;
+        }
+
+        .hand.active {
+            display: block;
+        }
+
+        .h-hour {
+            width: 6px;
+            height: 25%;
+            background: var(--hour-hand);
+            z-index: 3;
+        }
+
+        .h-min {
+            width: 4px;
+            height: 38%;
+            background: var(--min-hand);
+            z-index: 2;
+        }
+
+        .h-sec {
+            width: 2px;
+            height: 42%;
+            background: var(--sec-hand);
+            z-index: 4;
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: var(--text);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .input-bar,
+        .controls {
+            width: var(--panel-w);
+            background: var(--ui-gray);
+            border-radius: 12px;
+        }
+
+        .input-bar {
+            display: flex;
+            height: 48px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .input-bar:focus-within {
+            border-color: var(--text);
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: none;
+            padding: 0 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            outline: none;
+            color: var(--text);
+        }
+
+        .btn-send {
+            width: 50px;
+            flex-shrink: 0;
+            border: none;
+            background: var(--text);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .checkbox-group label,
+        .toggle-switch,
+        .btn-reroll {
+            border-radius: 5px;
+        }
+
+        .checkbox-group label {
+            cursor: pointer;
+            padding: 3px 8px;
+            border: 1.5px solid #ddd;
+            transition: 0.1s;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        input[type="checkbox"]:checked+label {
+            background: var(--text);
+            color: #fff;
+            border-color: var(--text);
+        }
+
+        .btn-reroll {
+            background: none;
+            border: 1.5px solid var(--text);
+            padding: 5px 10px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .toggle-switch {
+            cursor: pointer;
+            padding: 3px 8px;
+            background: #ddd;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .toggle-switch.on {
+            background: var(--text);
+            color: #fff;
+        }
+
+        #feedback {
+            font-size: 0.75rem;
+            font-weight: 800;
+            height: 14px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <header>
+            <h1>ANALOG CLOCK</h1>
+            <p>THE GAME</p>
+        </header>
+
+        <div class="clock" id="clock">
+            <div id="ticks"></div>
+            <div id="numbers"></div>
+            <div class="center-dot"></div>
+            <div class="hand h-hour active" id="handH"></div>
+            <div class="hand h-min active" id="handM"></div>
+            <div class="hand h-sec" id="handS"></div>
+        </div>
+
+        <div id="feedback"></div>
+
+        <div class="input-bar">
+            <input type="text" id="timeInput" placeholder="HH:MM" maxlength="8" inputmode="numeric">
+            <button class="btn-send" id="checkBtn">▶</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-row">
+                <span>Hands</span>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="checkH" checked><label for="checkH">H</label>
+                    <input type="checkbox" id="checkM" checked><label for="checkM">M</label>
+                    <input type="checkbox" id="checkS"><label for="checkS">S</label>
+                </div>
+            </div>
+            <div class="control-row">
+                <span>Precise Mode</span>
+                <div class="toggle-switch" id="preciseToggle">OFF</div>
+            </div>
+            <div class="control-row">
+                <span>Blind Mode</span>
+                <div class="toggle-switch" id="blindToggle">OFF</div>
+            </div>
+            <div class="control-row">
+                <button class="btn-reroll" id="rerollBtn">Reroll Time</button>
+                <span style="opacity: 0.4;">itsmike613</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+
+        const $ = (id) => document.getElementById(id);
+
+        const els = {
+            clock: $("clock"),
+            ticks: $("ticks"),
+            numbers: $("numbers"),
+            feedback: $("feedback"),
+            timeInput: $("timeInput"),
+            handH: $("handH"),
+            handM: $("handM"),
+            handS: $("handS"),
+            checkBtn: $("checkBtn"),
+            rerollBtn: $("rerollBtn"),
+            checkH: $("checkH"),
+            checkM: $("checkM"),
+            checkS: $("checkS"),
+            preciseToggle: $("preciseToggle"),
+            blindToggle: $("blindToggle")
+        };
+
+        const state = {
+            h: 12,
+            m: 0,
+            s: 0,
+            showH: true,
+            showM: true,
+            showS: false,
+            precise: false,
+            blind: false
+        };
+
+        const handMap = [
+            ["showH", "checkH", "handH", "HH"],
+            ["showM", "checkM", "handM", "MM"],
+            ["showS", "checkS", "handS", "SS"]
+        ];
+
+        let nextRoundTimer = 0;
+
+        function initClock() {
+            const tickFrag = document.createDocumentFragment();
+            const numFrag = document.createDocumentFragment();
+
+            for (let i = 0; i < 60; i++) {
+                const tick = document.createElement("div");
+                tick.className = i % 5 === 0 ? "tick hour-tick" : "tick";
+                tick.style.transform = `translateX(-50%) rotate(${i * 6}deg)`;
+                tickFrag.appendChild(tick);
+            }
+
+            for (let i = 1; i <= 12; i++) {
+                const num = document.createElement("div");
+                num.className = "number";
+                num.style.setProperty("--r", `${i * 30}deg`);
+                num.innerHTML = `<span>${i}</span>`;
+                numFrag.appendChild(num);
+            }
+
+            els.ticks.appendChild(tickFrag);
+            els.numbers.appendChild(numFrag);
+        }
+
+        function setFeedback(text = "", color = "") {
+            els.feedback.textContent = text;
+            els.feedback.style.color = color;
+        }
+
+        function renderClock() {
+            const sDeg = state.s * 6;
+            const mDeg = state.m * 6 + state.s * 0.1;
+            const hDeg = (state.h % 12) * 30 + state.m * 0.5;
+
+            els.handH.style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+            els.handM.style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            els.handS.style.transform = `translateX(-50%) rotate(${sDeg}deg)`;
+        }
+
+        function generateTime() {
+            clearTimeout(nextRoundTimer);
+
+            state.h = ((Math.random() * 12) | 0) + 1;
+
+            if (state.precise) {
+                state.m = (Math.random() * 60) | 0;
+                state.s = (Math.random() * 60) | 0;
+            } else {
+                state.m = ((Math.random() * 12) | 0) * 5;
+                state.s = state.showS ? ((Math.random() * 12) | 0) * 5 : 0;
+            }
+
+            renderClock();
+            els.timeInput.value = "";
+            setFeedback();
+        }
+
+        function updateHandVisibility() {
+            state.showH = els.checkH.checked;
+            state.showM = els.checkM.checked;
+            state.showS = els.checkS.checked;
+
+            if (!state.showH && !state.showM && !state.showS) {
+                state.showH = true;
+                els.checkH.checked = true;
+            }
+
+            for (const [stateKey, , handKey] of handMap) {
+                els[handKey].classList.toggle("active", state[stateKey]);
+            }
+
+            els.timeInput.placeholder = handMap
+                .filter(([stateKey]) => state[stateKey])
+                .map(([, , , label]) => label)
+                .join(":");
+
+            generateTime();
+        }
+
+        function checkAnswer() {
+            const values = els.timeInput.value.split(":").map((v) => Number(v));
+            const expected = [];
+            if (state.showH) expected.push(state.h);
+            if (state.showM) expected.push(state.m);
+            if (state.showS) expected.push(state.s);
+
+            const isCorrect =
+                values.length === expected.length &&
+                expected.every((value, i) => values[i] === value);
+
+            if (isCorrect) {
+                setFeedback("Correct", "var(--correct)");
+                nextRoundTimer = setTimeout(generateTime, 800);
+            } else {
+                setFeedback("Try Again", "var(--sec-hand)");
+            }
+        }
+
+        function togglePrecise() {
+            state.precise = !state.precise;
+            els.preciseToggle.textContent = state.precise ? "ON" : "OFF";
+            els.preciseToggle.classList.toggle("on", state.precise);
+            generateTime();
+        }
+
+        function toggleBlind() {
+            state.blind = !state.blind;
+            els.blindToggle.textContent = state.blind ? "ON" : "OFF";
+            els.blindToggle.classList.toggle("on", state.blind);
+            els.clock.classList.toggle("blind-active", state.blind);
+        }
+
+        function formatInput() {
+            const segments =
+                (state.showH ? 1 : 0) + (state.showM ? 1 : 0) + (state.showS ? 1 : 0);
+            const raw = els.timeInput.value.replace(/\D/g, "").slice(0, segments * 2);
+            let formatted = "";
+
+            for (let i = 0; i < raw.length; i++) {
+                if (i && i % 2 === 0) formatted += ":";
+                formatted += raw[i];
+            }
+
+            els.timeInput.value = formatted;
+        }
+
+        function bindEvents() {
+            els.checkBtn.addEventListener("click", checkAnswer);
+            els.rerollBtn.addEventListener("click", generateTime);
+            els.preciseToggle.addEventListener("click", togglePrecise);
+            els.blindToggle.addEventListener("click", toggleBlind);
+            els.timeInput.addEventListener("input", formatInput);
+            els.timeInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") checkAnswer();
+            });
+
+            [els.checkH, els.checkM, els.checkS].forEach((el) => {
+                el.addEventListener("change", updateHandVisibility);
+            });
+        }
+
+        initClock();
+        bindEvents();
+        updateHandVisibility();
+    </script>
+</body>
+
+</html>
